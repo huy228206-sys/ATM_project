@@ -1,102 +1,87 @@
 import java.util.ArrayList;
 import java.util.Scanner;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.BufferedReader;
-import java.io.PrintWriter;
-import java.io.IOException;
 import java.util.Properties;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.model.UpdateOptions;
+import org.bson.Document;
 
 public class ATM {
     ArrayList<Account> accounts; 
-    public static Properties messages = new Properties(); // Multi-language system data map
+    public static Properties messages = new Properties();
 
     public ATM() {
         this.accounts = new ArrayList<>();
     }
-    
-    // Load local message files dynamically based on session preference
+
     public static void loadLanguage(String lang) {
-        try (BufferedReader reader = new BufferedReader(new FileReader("language_" + lang + ".message"))) {
-            messages.load(reader);
-        } catch (IOException e) {
-            System.out.println("Error loading translation file: " + e.getMessage());
-        }
+        LanguageManager.loadLanguage(lang);
     }
 
-    // Helper method to fetch mapped translations
     public static String getMessage(String key) {
-        return messages.getProperty(key, key);
+        return LanguageManager.getMessage(key);
     }
 
-    // Add account to memory array
     public void addAccount(Account acc) {
         this.accounts.add(acc);
     }
 
-    // Execute ATM life-cycle
     public void start() {
-        Scanner scanner = new Scanner(System.in);
-        int attempts = 0; // Login tracking error index
-        
-        while (true) { 
-            // Multi-language selection triggered at every single new session start
-            System.out.println("\nSelect Language / Chon ngon ngu:");
-            System.out.println("1. English");
-            System.out.println("2. Vietnamese");
-            System.out.print("Choose / Chon (1-2): ");
-            String langChoice = scanner.nextLine().trim();
-            if ("1".equals(langChoice)) {
-                loadLanguage("en");
-            } else {
-                loadLanguage("vn");
-            }
+    Scanner scanner = new Scanner(System.in);
+    while (true) {
+        System.out.println("\nSelect Language / Chon ngon ngu:");
+        System.out.println("1. English");
+        System.out.println("2. Vietnamese");
+        System.out.print("Choose / Chon (1-2): ");
+        String langChoice = scanner.nextLine().trim();
+        if ("1".equals(langChoice)) {
+            LanguageManager.loadLanguage("en");
+        } else {
+            LanguageManager.loadLanguage("vn");
+        }
 
+        int attempts = 0; 
+        while (attempts < 3) {
             System.out.println("\n" + getMessage("welcome_title"));
             System.out.print(getMessage("prompt_account_num"));
             String inputAccNum = scanner.nextLine();
-            
-            // Safe termination path
             if (inputAccNum.equalsIgnoreCase("q")) {
                 System.out.println(getMessage("msg_system_off"));
-                break;
+                scanner.close();
+                return; 
             }
-            
+
             System.out.print(getMessage("prompt_pin"));
             String inputPin = scanner.nextLine();
 
             Account currentAccount = null;
-            // Scan credentials match
             for (Account acc : this.accounts) {
                 if (acc.accountNumber.equals(inputAccNum) && acc.pin.equals(inputPin)) {
-                    currentAccount = acc; 
-                    break; 
+                    currentAccount = acc;
+                    break;
                 }
             }
 
             if (currentAccount != null) {
                 System.out.println("\n" + getMessage("msg_login_success") + currentAccount.accountName + "!");
-                
-                // Reset metrics
-                attempts = 0; 
-                
+                currentAccount.loadHistoryFromDatabase();
                 showMenu(currentAccount, scanner);
+                break; 
             } else {
-                attempts++; 
-                System.out.println(getMessage("err_login_failed") + (3 - attempts) + " " + getMessage("lbl_attempts_left") + "\n");
-                
-                // Security locking bounds
-                if (attempts >= 3) {
+                attempts++;
+                if (attempts < 3) {
+                    System.out.println(getMessage("err_login_failed") + (3 - attempts) + " " + getMessage("lbl_attempts_left") + "\n");
+
+                } else {
                     System.out.println(getMessage("err_system_locked"));
-                    break; 
+                   
                 }
             }
         }
-        scanner.close(); 
     }
+}
 
-    // Render interactive action panel
     public void showMenu(Account acc, Scanner scanner) {
         int choice = 0;
         while (choice != 7) {
@@ -151,7 +136,6 @@ public class ATM {
         }
     }
 
-    // Input loop validation utility for precision numbers
     private double getDoubleInput(Scanner scanner, String prompt) {
         double value = 0;
         boolean valid = false;
@@ -167,7 +151,6 @@ public class ATM {
         return value;
     }
 
-    // Input validation utility for clean selections
     private int getIntInput(Scanner scanner, String prompt) {
         int value = 0;
         boolean valid = false;
@@ -192,46 +175,70 @@ public class ATM {
         return null;
     }
 
-    // Read flat configuration maps from data path
+    // // Load account from MongoDB
     public void loadAccounts() {
-        File file = new File("accounts.txt");
-        if (!file.exists()) {
-            System.out.println("Data file not found. Initializing default data...");
-            // Standard VNĐ mock amounts initialized for fallback
-            addAccount(new Account("Huy", "1001", "4321", 5000000.0));
-            addAccount(new Account("Hoa", "1002", "1111", 10000000.0));
-            addAccount(new Account("Nam", "1003", "9999", 500000.0));
-            saveAccounts(); 
-            return;
-        }
+        try {
+            MongoDatabase database = DatabaseConnection.getDatabase();
+            MongoCollection<Document> collection = database.getCollection("accounts");
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(","); 
-                if (parts.length == 4) {
-                    String number = parts[0];
-                    String name = parts[1];
-                    String pin = parts[2];
-                    double balance = Double.parseDouble(parts[3]);
-                    
-                    addAccount(new Account(name, number, pin, balance));
-                }
+            this.accounts.clear();
+            FindIterable<Document> results = collection.find();
+
+            boolean hasData = false;
+            for (Document doc : results) {
+                hasData = true;
+                String number = doc.getString("accountNumber");
+                String name = doc.getString("accountName");
+                String pin = doc.getString("pin");
+                double balance = doc.get("balance", Number.class).doubleValue();
+                
+                addAccount(new Account(name, number, pin, balance));
             }
-            System.out.println("Data loaded from file successfully!");
+
+        
+            if (!hasData) {
+                System.out.println("-> MongoDB chua co du lieu tai khoan. Dang khoi tao du lieu mac dinh...");
+                Account acc1 = new Account("Huy", "1001", "4321", 5000000.0);
+                Account acc2 = new Account("Hoa", "1002", "1111", 10000000.0);
+                Account acc3 = new Account("Nam", "1003", "9999", 500000.0);
+
+                addAccount(acc1);
+                addAccount(acc2);
+                addAccount(acc3);
+
+                saveAccounts();
+            } else {
+                System.out.println("-> Tai du lieu tai khoan tu MongoDB thanh cong!");
+            }
+
         } catch (Exception e) {
-            System.out.println("Error reading file: " + e.getMessage());
+            System.out.println("-> Loi khi tai du lieu tai khoan tu MongoDB: " + e.getMessage());
         }
     }
 
-    // Persistence layer writer out to flat file target
+    public void saveAccountToDatabase(Account acc) {
+        try {
+            MongoDatabase database = DatabaseConnection.getDatabase();
+            MongoCollection<Document> collection = database.getCollection("accounts");
+
+            Document filter = new Document("accountNumber", acc.accountNumber);
+            Document update = new Document("$set", new Document()
+                    .append("accountNumber", acc.accountNumber)
+                    .append("accountName", acc.accountName)
+                    .append("pin", acc.pin)
+                    .append("balance", acc.balance));
+
+           
+            collection.updateOne(filter, update, new UpdateOptions().upsert(true));
+        } catch (Exception e) {
+            System.out.println("-> Loi khi cap nhat tai khoan vao MongoDB: " + e.getMessage());
+        }
+    }
+
+    
     public void saveAccounts() {
-        try (PrintWriter writer = new PrintWriter(new FileWriter("accounts.txt"))) {
-            for (Account acc : accounts) {
-                writer.println(acc.accountNumber + "," + acc.accountName + "," + acc.pin + "," + acc.balance);
-            }
-        } catch (IOException e) {
-            System.out.println("Error saving data: " + e.getMessage());
+        for (Account acc : this.accounts) {
+            saveAccountToDatabase(acc);
         }
     }
 }
