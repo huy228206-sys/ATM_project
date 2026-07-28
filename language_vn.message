@@ -1,0 +1,45 @@
+welcome_title==== CHAO MUNG DEN VOI JAVABANK ATM ====
+prompt_account_num=Nhap so tai khoan (hoac go 'Q' de tat may ATM): 
+msg_system_off=He thong ATM dang tat... Tam biet!
+prompt_pin=Nhap ma PIN: 
+msg_login_success=Dang nhap thanh cong. Xin chao, 
+err_login_failed=Loi: Sai so tai khoan hoac ma PIN. Ban con 
+lbl_attempts_left=lan thu.
+err_system_locked=Ban da nhap sai qua 3 lan. Khoa the. Chuong trinh ket thuc.
+menu_title==== Menu Chinh ATM ====
+menu_check_balance=Kiem Tra So Du
+menu_deposit=Nap Tien
+menu_withdraw=Rut Tien
+menu_transfer=Chuyen Khoan
+menu_history=Lich Su Giao Dich
+menu_change_pin=Doi Ma Pin
+menu_logout=Dang Xuat
+prompt_choose_option=Chon mot muc: 
+msg_current_balance=So du hien tai cua ban la: 
+prompt_deposit_amount=Nhap so tien muon nap: 
+prompt_withdraw_amount=Nhap so tien muon rut: 
+prompt_new_pin=Nhap ma Pin moi cua ban:
+msg_logout_success=Dang xuat thanh cong! Đang tro ve man hinh chinh...
+prompt_target_account=Nhap so tai khoan nguoi nhan: 
+err_target_not_found=Loi: Khong tim thay tai khoan dich.
+err_transfer_self=Loi: Khong the chuyen khoan cho chinh minh.
+prompt_transfer_amount=Nhap so tien muon chuyen: 
+err_numeric_only=Loi: Vui long chi nhap so! Hay thu lai.
+err_integer_only=Loi: Vui long chi nhap so nguyen! Hay thu lai.
+err_invalid_choice=Loi: Lua chon khong hop le. Vui long chon lai tu 1 toi 7.
+err_min_amount=Loi: Gia tri giao dich phai tu 5.000 VNĐ tro len.
+err_daily_limit=Loi: Vuot qua han muc giao dich! Toi da 50.000.000 VNĐ moi ngay.
+msg_daily_withdrawn=So tien ban da giao dich hom nay la: 
+tx_deposit=Nap tien
+tx_withdraw=Rut tien
+tx_transfer_to=Chuyen tien den STK 
+tx_received_from=Nhan tien tu STK 
+msg_deposit_success=Nap tien thanh cong: +
+msg_withdraw_success=Rut tien thanh cong: -
+msg_transfer_success=Chuyen khoan thanh cong: -
+menu_history_title==== LICH SU GIAO DICH ====
+msg_no_history=Chua co giao dich nao duoc thuc hien.
+lbl_type=Loai
+lbl_amount=So tien
+lbl_balance_after=So du sau GD
+msg_pin_success=Doi ma pin thanh cong

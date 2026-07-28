@@ -1,0 +1,45 @@
+welcome_title==== WELCOME TO JAVABANK ATM ====
+prompt_account_num=Enter account number (or type 'Q' to turn off ATM): 
+msg_system_off=ATM system shutting down... Goodbye!
+prompt_pin=Enter PIN: 
+msg_login_success=Login successful. Welcome, 
+err_login_failed=Error: Invalid account number or PIN. You have 
+lbl_attempts_left=attempt(s) left.
+err_system_locked=You have entered incorrectly more than 3 times. Card locked. Program ends.
+menu_title==== ATM Main Menu ====
+menu_check_balance=Check Balance
+menu_deposit=Deposit Money
+menu_withdraw=Withdraw Money
+menu_transfer=Transfer Money
+menu_history=Transaction History
+menu_change_pin=Change PIN
+menu_logout=Log Out
+prompt_choose_option=Choose an option: 
+msg_current_balance=Your current balance is: 
+prompt_deposit_amount=Enter amount to deposit: 
+prompt_withdraw_amount=Enter amount to withdraw: 
+prompt_new_pin=Enter your new PIN:
+msg_logout_success=Logged out successfully! Returning to main screen...
+prompt_target_account=Enter recipient account number: 
+err_target_not_found=Error: Target account not found.
+err_transfer_self=Error: Cannot transfer money to yourself.
+prompt_transfer_amount=Enter amount to transfer: 
+err_numeric_only=Error: Please enter numbers only! Try again.
+err_integer_only=Error: Please enter an integer only! Try again.
+err_invalid_choice=Error: Invalid choice. Please choose from 1 to 7.
+err_min_amount=Error: Transaction value must be at least 5,000 VNĐ.
+err_daily_limit=Error: Exceeded daily transaction limit! Maximum 50,000,000 VNĐ per day.
+msg_daily_withdrawn=Amount transacted today: 
+tx_deposit=Deposit
+tx_withdraw=Withdraw
+tx_transfer_to=Transfer to Acc 
+tx_received_from=Received from Acc 
+msg_deposit_success=Deposit successful: +
+msg_withdraw_success=Withdrawal successful: -
+msg_transfer_success=Transfer successful: -
+menu_history_title==== TRANSACTION HISTORY ====
+msg_no_history=No transactions have been made yet.
+lbl_type=Type
+lbl_amount=Amount
+lbl_balance_after=Balance After TX
+msg_pin_success=PIN changed successfully
